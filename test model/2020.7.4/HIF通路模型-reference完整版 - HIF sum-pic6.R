@@ -1,3 +1,7 @@
+#modified purpose:
+#Introduce the variable Hif_sum = HIFa+HIFa_aOH to see the effect of FIH to stablize the HIFa,
+#and also demonstrate the seemed controversial results of HIFa stabilization and transcriptional activity.
+
 #initial conditions
 
 #Velocity constant
@@ -5,7 +9,7 @@
   k1 <- 0.005
   k2 <- 0.02
   k3 <- 0.045
-  km3a <- 250000 #** reference:o2,Km3a&Km5a are in ¦ÌM,others are in nM
+  km3a <- 250000 #** reference:o2,Km3a&Km5a are in Â¦ÃŒM,others are in nM
   km3b <- 100
   k4 <- 0.1
   km4 <- 150
@@ -201,12 +205,12 @@ for (i in c(2:timesteps-1)){
   #plot of "HIF1 activation"
   plot(time,s_HIFd_HRE,col ="red", type = "l",xlab = "time(h)",ylab = "HIF-HRE concentration(nM)")
   lines(time,s_HIFd_HRE,col="black")
-  legend("topleft",legend = c("HIF¦Á","HIF-HRE"),col = c("blue","red"),lty = 1, cex = 1)
+  legend("topleft",legend = c("HIFÂ¦Ã","HIF-HRE"),col = c("blue","red"),lty = 1, cex = 1)
   
-  #plot of "HIF1¦Á stabilization"
-  plot(time,s_HIF_sum,col ="black", type = "l",xlab = "time(h)",ylab = "HIF¦Á concentration(nM)")
+  #plot of "HIF1Â¦Ã stabilization"
+  plot(time,s_HIF_sum,col ="black", type = "l",xlab = "time(h)",ylab = "HIFÂ¦Ã concentration(nM)")
   lines(time,s_HIF_sum,col="red")
-  legend("topleft",legend = c("HIF¦Á","HIF-HRE"),col = c("blue","red"),lty = 1, cex = 1)
+  legend("topleft",legend = c("HIFÂ¦Ã","HIF-HRE"),col = c("blue","red"),lty = 1, cex = 1)
   
   
   #plot of "protein & PHD"
@@ -218,7 +222,7 @@ for (i in c(2:timesteps-1)){
   plot(time,s_protein,col ="blue",type = "l",xlab = "time(h)",ylab = "concentration(nM)")
   legend("topleft",legend = c("protein","PHD"),col = c("blue","red"),lty = 1, cex = 1)
    
-#additional£ºgraph with ggplot
+#additionalÂ£Âºgraph with ggplot
   #create a dataframe
   HIF_df <- data.frame(time, s_HIFa,s_HIFa_pOH,
                        s_HIFb,s_PHD,s_VHL,s_HIFd,
@@ -228,11 +232,11 @@ for (i in c(2:timesteps-1)){
   
   #ggplot
   library(ggplot2)
-  #plot of "HIF1¦Á & HIF-dimer"
+  #plot of "HIF1Â¦Ã & HIF-dimer"
   ggplot(HIF_df)+
     geom_line(aes(x=time,y=s_HIFa,col="s_HIFa"))+
     geom_line(aes(x=time,y=s_HIFd,col="s_HIFd"))+
-    scale_colour_discrete(breaks = c("s_HIFa","s_HIFd"), labels = c('HIF1¦Á','HIF-dimer'))+
+    scale_colour_discrete(breaks = c("s_HIFa","s_HIFd"), labels = c('HIF1Â¦Ã','HIF-dimer'))+
     labs(x="time(h)",y="concentration(nM)")
   #plot of "protein & PHD"
   ggplot(HIF_df)+
