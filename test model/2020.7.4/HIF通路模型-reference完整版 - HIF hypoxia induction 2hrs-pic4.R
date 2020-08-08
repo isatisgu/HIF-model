@@ -1,3 +1,6 @@
+#purpose:
+#modified the concentration of O2 to simulate the situation in Fig. 4 of the reference
+
 #initial conditions
 
 #Velocity constant

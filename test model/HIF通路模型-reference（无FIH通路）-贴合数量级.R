@@ -1,3 +1,6 @@
+#modified purpose:
+#amplify the reaction rate of V3 intending to make the order of magnitude similar to the model from the reference
+
 #initial conditions
 
 #Velocity constant

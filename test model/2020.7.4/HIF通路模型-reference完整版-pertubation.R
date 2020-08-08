@@ -1,3 +1,6 @@
+#purpose:
+#introduce the perturbation in the 100th hour to test if the system is stable and robust
+
 #initial conditions
 
 #Velocity constant

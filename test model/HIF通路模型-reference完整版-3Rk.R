@@ -1,3 +1,6 @@
+#modified purpose:
+#adding a reverse V3R to simulate the dehydroxylation of HIF-pOH
+
 #initial conditions
 
 #Velocity constant
