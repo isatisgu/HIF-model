@@ -1,3 +1,17 @@
+
+# test-A HIFp-OH dehydroxylation simulation:
+#adding a reverse V3R to simulate the dehydroxylation of HIF-pOH, 
+#the reverse rate is varied from 1/10000; 1/1000; 1/100; 1/10
+
+#condition of control£ºj=0 k=0 a=1 h=1 k_trans=0, uncomment the standard_vector
+
+j <- 0.01 #k3R coefficient(10^?)
+k <- 0 #VHL deficiency 0:-2 ~ 50:0.5
+a <- 0 #VHL absent = 0
+h <- 1 # O2 level
+k_trans <- 0.0002 # k for VHL vector transcription (0.002)
+p <- 40 # treat time (h)
+
 #initial conditions
 
 #Velocity constant
@@ -29,6 +43,9 @@
   k16 = k4
   km16 = km4
   
+  #set k for reverse reaction No.3
+  k3R <- k3*j
+  
 #initial concentration 
   HIFa <- 0.05
   HIFa_pOH <- 0
@@ -43,16 +60,18 @@
   mRNA <- 0
   protein <- 0 # same as EGFP in the simplified model
   
-  o2 <- 100000 #** Oxygen leVel at normoxia
-  VHL <- 50
-  VHLn <- 50
+  o2 <- 100000*h #** Oxygen leVel at normoxia
+  
+  #VHL initial concentration
+  VHL <- 50*10^k*a
+  VHLn <- 50*10^k*a
   
 #set time interVal [unit="s"]
-  dt <- 10  
+  dt <- 5  
   
 #set loop to simulate the pathway
   #set timelength
-  timesteps <- 50000
+  timesteps <- 100000
   #set empty Vectors to store the Variables
   s_HIFa <- numeric(length = timesteps)
   s_HIFa[1] <- HIFa
@@ -106,9 +125,15 @@ for (i in c(2:timesteps-1)){
   V26 <- k26*mRNA
   V27 <- k27*mRNA
   V28 <- k28*protein
- #simulate the process
-  HIFa <- HIFa + (V1-V2-V9+V10-V3)*dt
-  HIFa_pOH <- HIFa_pOH + (V3-V4)*dt
+  
+  #set V3R to simulate dehydroxylation
+  v3R <- k3R*HIFa_pOH
+  #set v_trans to simulate VHL vector
+  v_trans <- k_trans*HIFd_HRE
+  
+ #simulate the process  (v3R affects HIFa & HIFa_pOH)
+  HIFa <- HIFa + (V1-V2-V9+V10-V3+v3R)*dt
+  HIFa_pOH <- HIFa_pOH + (V3-V4-v3R)*dt
   HIFan <- HIFan + (V9-V10-V15-V21)*dt
   PHDn <- PHDn + (V11-V12)*dt
   HIFan_pOH <- HIFan_pOH + (V15-V16)*dt
@@ -119,8 +144,15 @@ for (i in c(2:timesteps-1)){
   HRE <- HRE + (-V22)*dt
   mRNA <- mRNA + (V23-V26)*dt
   protein <- protein + (V27-V28)*dt
-  VHL <- VHL
+  
+  #VHL manipulation part
   VHLn <- VHLn
+  if(i < p*3600/dt){
+    VHL <- VHL
+  }else{
+    VHL <- VHL + v_trans*dt
+  }
+  
   s_HIFa[i+1] <- HIFa
   s_HIFa_pOH[i+1] <- HIFa_pOH
   s_HIFan_pOH[i+1] <- HIFan_pOH
@@ -137,36 +169,54 @@ for (i in c(2:timesteps-1)){
   s_VHLn[i+1] <- VHLn
 }
 
+  #recording of balanced concentration level
+    #standard_protein_balance <- s_protein[50000]
+    #standard_PHD_balance <- s_PHD[50000]
+    #standard_HIFa_balance <- s_HIFa[50000]
+    #standard_HIFd_HRE_balance <- s_HIFd_HRE[50000]
+  
 #plot 
   time <- seq(0, by=dt/3600,length.out = timesteps)
-  #plot of "HIF1¦Á & HIF-dimer"
-  plot(time,s_HIFd_HRE,col="red",type = "l",xlab = "time(h)",ylab = "concentration(nM)")
+  #plot of "HIF¦Á & HIF-dimer"
+  plot(time,s_HIFd_HRE,col="red", type = "l",xlab = "time(h)",ylab = "concentration(nM)")
+  abline(v = p, col="grey", lty=3)
   lines(time,s_HIFa,col ="blue")
-  legend("topright",legend = c("HIF1¦Á","HIF-HRE"),col = c("blue","red"),lty = 1, cex = 1)
+  abline(h=standard_HIFd_HRE_balance, col="red",lty=2)
+  abline(h=standard_HIFa_balance,col="blue",lty=2)
+  legend("topright",legend = c("HIF¦Á","HIF-HRE"),col = c("blue","red"),lty = 1, cex = 1)
+  
   #plot of "protein & PHD"
-  plot(time,s_protein,col ="blue", type = "l",xlab = "time(h)",ylab = "concentration(nM)")
+  plot(time,s_protein,col ="blue", type = "l", xlab = "time(h)", ylab = "concentration(nM)")
+  abline(v = p, col="grey", lty=3)
   lines(time,s_PHD,col ="red",xlab = "time(h)",ylab = "concentration(nM)")
+  abline(h = standard_PHD_balance,col = "red",lty = 2)
+  abline(h = standard_protein_balance,col = "blue",lty = 2)
   legend("topright",legend = c("protein","PHD"),col = c("blue","red"),lty = 1, cex = 1)
-   
+  
+  #plot of VHL change
+  plot(time,s_VHL,col = "gold",type = "l",lwd = 2, xlab = "time(h)", ylab = "concentration(nM)")
+  abline(v = p, col="grey", lty=3)
+  legend("topleft",legend = "VHL", col = "gold", lty = 1, cex = 1)
+  
 #additional£ºgraph with ggplot
   #create a dataframe
-  HIF_df <- data.frame(time, s_HIFa,s_HIFa_pOH,
-                       s_HIFb,s_PHD,s_VHL,s_HIFd,
-                       s_HRE,HIFd_HRE,s_mRNA,s_protein)
+  #HIF_df <- data.frame(time, s_HIFa,s_HIFa_pOH,
+                      # s_HIFb,s_PHD,s_VHL,s_HIFd,
+                      # s_HRE,HIFd_HRE,s_mRNA,s_protein)
   
   
   #ggplot
-  library(ggplot2)
-  #plot of "HIF1¦Á & HIF-dimer"
-  ggplot(HIF_df)+
-    geom_line(aes(x=time,y=s_HIFa,col="s_HIFa"))+
-    geom_line(aes(x=time,y=s_HIFd,col="s_HIFd"))+
-    scale_colour_discrete(breaks = c("s_HIFa","s_HIFd"), labels = c('HIF1¦Á','HIF-dimer'))+
-    labs(x="time(h)",y="concentration(nM)")
+  #library(ggplot2)
+  #plot of "HIF¦Á & HIF-dimer"
+  #ggplot(HIF_df)+
+   # geom_line(aes(x=time,y=s_HIFa,col="s_HIFa"))+
+   # geom_line(aes(x=time,y=s_HIFd,col="s_HIFd"))+
+   # scale_colour_discrete(breaks = c("s_HIFa","s_HIFd"), labels = c('HIF¦Á','HIF-dimer'))+
+   # labs(x="time(h)",y="concentration(nM)")
   #plot of "protein & PHD"
-  ggplot(HIF_df)+
-    geom_line(aes(x=time,y=s_protein,col="s_protein"))+
-    geom_line(aes(x=time,y=s_PHD,col="s_PHD"))+
-    scale_colour_discrete(breaks = c("s_protein","s_PHD"), labels = c('protein','PHD'))+
-    labs(x="time(h)",y="concentration(nM)")
+  #ggplot(HIF_df)+
+   # geom_line(aes(x=time,y=s_protein,col="s_protein"))+
+   # geom_line(aes(x=time,y=s_PHD,col="s_PHD"))+
+   # scale_colour_discrete(breaks = c("s_protein","s_PHD"), labels = c('protein','PHD'))+
+   # labs(x="time(h)",y="concentration(nM)")
   
